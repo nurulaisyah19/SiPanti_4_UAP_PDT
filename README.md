@@ -1,4 +1,4 @@
-Dokumentasi Sistem SiPanti - Sistem Donasi dan Penyaluran Bantuan Sosial
+SiPanti - Sistem Donasi dan Penyaluran Bantuan Sosial
 1. Pendahuluan
 
 SiPanti adalah sistem informasi berbasis web yang dikembangkan untuk memudahkan pengelolaan donasi dan penyaluran bantuan sosial. 
