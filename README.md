@@ -1,6 +1,4 @@
-Berikut adalah dokumentasi **terbaru dan lengkap** untuk proyek **Sistem Manajemen Donasi dan Penyaluran Bantuan Sosial (SiPanti)** berdasarkan file SQL dan struktur sistem yang kamu upload (`sipanti (1).sql` dan `sipanti.zip`).
 
----
 
 # 🧩 Sistem Manajemen Donasi dan Penyaluran Bantuan Sosial (SiPanti)
 
