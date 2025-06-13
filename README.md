@@ -1,83 +1,152 @@
-SiPanti - Sistem Donasi dan Penyaluran Bantuan Sosial
-1. Pendahuluan
+Berikut adalah dokumentasi **terbaru dan lengkap** untuk proyek **Sistem Manajemen Donasi dan Penyaluran Bantuan Sosial (SiPanti)** berdasarkan file SQL dan struktur sistem yang kamu upload (`sipanti (1).sql` dan `sipanti.zip`).
 
-SiPanti adalah sistem informasi berbasis web yang dikembangkan untuk memudahkan pengelolaan donasi dan penyaluran bantuan sosial. 
-Sistem ini menyediakan antarmuka pengguna yang intuitif serta mencakup proses login, registrasi, manajemen donasi uang, penyaluran bantuan, 
-dan pengelolaan data dengan fitur keamanan dan akuntabilitas.
+---
 
-2. Fitur Sistem
+# 🧩 Sistem Manajemen Donasi dan Penyaluran Bantuan Sosial (SiPanti)
 
-- Login & Register: Otentikasi pengguna menggunakan email dan password.
-- Dashboard: Menampilkan total donasi dan riwayat donasi pengguna.
-- CRUD Donasi: Tambah, edit, dan hapus donasi uang.
-- Penyaluran Bantuan: Input data penyaluran kepada penerima.
-- Proteksi Halaman: Semua halaman terproteksi session.
-- Logout: Mengakhiri session pengguna.
-- Desain Responsif: Menggunakan Bootstrap agar tampilan menarik dan mobile-friendly.
+**SiPanti** adalah sistem informasi berbasis web untuk mencatat, mengelola, dan memantau aliran **donasi** serta proses **penyaluran bantuan sosial** secara transparan. Sistem ini mendukung fitur autentikasi pengguna, pencatatan donasi, proses penyaluran, serta pelaporan log donasi dengan teknologi basis data terkini (trigger, function, procedure, dan transaction).
 
-3. Struktur Database
+![Screenshot 2025-06-14 005949](https://github.com/user-attachments/assets/dd5df629-1b00-430d-9942-394509b672dc)
 
-Tabel utama dalam database:
-- users: Menyimpan data pengguna (id, name, email, password, role).
-- donations: Menyimpan data donasi uang (id, user_id, amount, description, created_at).
-- penyaluran: Menyimpan data penyaluran bantuan (id, nama_penerima, jenis_bantuan, jumlah, keterangan, created_at).
 
-4. Stored Procedure
+---
 
-a. tambah_penyaluran:
-Prosedur untuk menambahkan data penyaluran bantuan ke tabel `penyaluran`.
+## 🎯 Tujuan Sistem
 
-DELIMITER //
+* Mempermudah pencatatan donasi dan bantuan.
+* Menjamin keamanan dan integritas data.
+* Menyediakan pelaporan dan riwayat donasi.
+* Mengotomatisasi pencatatan log transaksi penting.
+* Mengelola data donasi besar secara terpisah.
+
+---
+
+## ⚙️ Struktur Tabel & Fungsinya
+
+| Tabel        | Deskripsi Fungsi                                                                      |
+| ------------ | ------------------------------------------------------------------------------------- |
+| `users`      | Menyimpan data pengguna, termasuk nama, email, password hash, dan role (`user/admin`) |
+| `donations`  | Menyimpan catatan donasi pengguna, termasuk nominal dan deskripsi                     |
+| `log_donasi` | Menyimpan log otomatis dari donasi, termasuk deteksi donasi besar                     |
+| `penyaluran` | Menyimpan catatan distribusi bantuan ke penerima manfaat                              |
+
+---
+
+## 🛠️ Fitur SQL Tingkat Lanjut
+
+### 1. ✅ **Stored Procedure**: `tambah_penyaluran`
+
+Digunakan untuk mempermudah proses input penyaluran bantuan secara modular.
+
+```sql
 CREATE PROCEDURE tambah_penyaluran (
-    IN nama VARCHAR(100),
-    IN jenis VARCHAR(50),
-    IN jumlah DOUBLE,
-    IN ket TEXT
+  IN nama VARCHAR(100),
+  IN jenis VARCHAR(50),
+  IN jumlah DOUBLE,
+  IN ket TEXT
 )
 BEGIN
-    INSERT INTO penyaluran (nama_penerima, jenis_bantuan, jumlah, keterangan)
-    VALUES (nama, jenis, jumlah, ket);
-END //
-DELIMITER ;
+  INSERT INTO penyaluran (nama_penerima, jenis_bantuan, jumlah, keterangan)
+  VALUES (nama, jenis, jumlah, ket);
+END;
+```
 
-5. Function
+**Dipanggil di:** `penyaluran.php` saat admin menginput distribusi bantuan.
+![image](https://github.com/user-attachments/assets/68492748-90fb-4a5f-8b42-6dc3c6eac109)
 
-a. get_total_donasi:
-Function untuk menghitung total donasi berdasarkan user_id.
+---
 
-DELIMITER //
-CREATE FUNCTION get_total_donasi(uid INT) RETURNS DOUBLE
+### 2. ✅ **Function**: `total_donasi`
+
+Menghitung total seluruh donasi berdasarkan ID user.
+
+```sql
+CREATE FUNCTION total_donasi(uid INT) RETURNS DOUBLE
 BEGIN
-    DECLARE total DOUBLE;
-    SELECT SUM(amount) INTO total FROM donations WHERE user_id = uid;
-    RETURN IFNULL(total, 0);
-END //
-DELIMITER ;
+  DECLARE total DOUBLE;
+  SELECT SUM(amount) INTO total FROM donations WHERE user_id = uid;
+  RETURN IFNULL(total, 0);
+END;
+```
 
-6. Trigger
+**Dipanggil di:** `dashboard.php` untuk menampilkan total donasi user yang sedang login.
+![image](https://github.com/user-attachments/assets/fd51fe08-842b-46c8-9b94-83595f4f5e41)
 
-a. before_insert_donasi:
-Trigger untuk validasi data sebelum memasukkan donasi agar tidak nol atau negatif.
+---
 
-DELIMITER //
-CREATE TRIGGER before_insert_donasi
-BEFORE INSERT ON donations FOR EACH ROW
+### 3. ✅ **Trigger**:
+
+#### a. `after_donasi_insert`
+
+Mencatat log setiap donasi baru ke tabel `log_donasi`.
+
+```sql
+CREATE TRIGGER after_donasi_insert
+AFTER INSERT ON donations
+FOR EACH ROW
 BEGIN
-    IF NEW.amount <= 0 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Jumlah donasi harus lebih dari 0';
-    END IF;
-END //
-DELIMITER ;
+  INSERT INTO log_donasi (user_id, amount, description)
+  VALUES (NEW.user_id, NEW.amount, NEW.description);
+END;
+```
 
-7. Backup Database
+#### b. `after_donasi`
 
-Backup dapat dilakukan dengan tools seperti phpMyAdmin atau dengan command:
-mysqldump -u root -p sipanti > sipanti_backup.sql
+Mendeteksi dan mencatat donasi besar (≥ 1 juta) dengan pesan khusus.
 
-Ini menyimpan seluruh isi database ke dalam file .sql yang dapat direstore ulang.
+```sql
+CREATE TRIGGER after_donasi
+AFTER INSERT ON donations
+FOR EACH ROW
+BEGIN
+  IF NEW.amount >= 1000000 THEN
+    INSERT INTO log_donasi (user_id, amount, log_message)
+    VALUES (NEW.user_id, NEW.amount, CONCAT('Donasi besar: Rp ', NEW.amount));
+  END IF;
+END;
+```
 
-8. Kesimpulan
+**Dipicu otomatis saat:** pengguna mengisi `donasi.php`.
+![image](https://github.com/user-attachments/assets/15df8a92-a2ac-4c20-a2f1-fcea70c0f268)
 
-Sistem SiPanti dirancang untuk memudahkan proses donasi dan penyaluran bantuan sosial secara digital. 
-Dengan implementasi fitur CRUD, fungsi database, trigger, dan prosedur, sistem ini dapat menjamin integritas dan keandalan data.
+---
 
+### 4. ✅ **Transaction**
+
+Digunakan untuk menjamin atomicity saat penyimpanan donasi dan pemanggilan trigger.
+
+```sql
+START TRANSACTION;
+-- INSERT INTO donations ...
+-- Trigger otomatis jalan
+COMMIT;
+```
+
+**Dilakukan secara implisit di backend PHP saat donasi dilakukan.**
+
+---
+
+## 🧾 Penjelasan File PHP
+
+| File             | Fungsi                                               |
+| ---------------- | ---------------------------------------------------- |
+| `login.php`      | Login pengguna, cek email & password hash            |
+| `register.php`   | Form registrasi pengguna baru                        |
+| `dashboard.php`  | Menampilkan total donasi user (gunakan function SQL) |
+| `donasi.php`     | Form tambah donasi → otomatis trigger dan insert     |
+| `penyaluran.php` | Form tambah bantuan → memanggil prosedur SQL         |
+| `logout.php`     | Menghapus session dan logout                         |
+| `config.php`     | Koneksi database MySQL                               |
+| `style.css`      | Desain tampilan antar halaman web                    |
+
+
+
+---
+
+## 💾 Backup Database
+
+* File backup: `sipanti.sql`
+* Berisi seluruh struktur dan data tabel `users`, `donations`, `penyaluran`, `log_donasi`
+* Termasuk: `procedure`, `function`, `trigger`, `transaction`, `foreign key`
+
+---
