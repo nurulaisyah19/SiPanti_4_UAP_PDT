@@ -88,24 +88,9 @@ BEGIN
 END;
 ```
 
-#### b. `after_donasi`
-
-Mendeteksi dan mencatat donasi besar (≥ 1 juta) dengan pesan khusus.
-
-```sql
-CREATE TRIGGER after_donasi
-AFTER INSERT ON donations
-FOR EACH ROW
-BEGIN
-  IF NEW.amount >= 1000000 THEN
-    INSERT INTO log_donasi (user_id, amount, log_message)
-    VALUES (NEW.user_id, NEW.amount, CONCAT('Donasi besar: Rp ', NEW.amount));
-  END IF;
-END;
-```
-
 **Dipicu otomatis saat:** pengguna mengisi `donasi.php`.
-![image](https://github.com/user-attachments/assets/15df8a92-a2ac-4c20-a2f1-fcea70c0f268)
+![image](https://github.com/user-attachments/assets/ad609b18-8411-48e2-b1b4-772eb71d0f99)
+
 
 ---
 
