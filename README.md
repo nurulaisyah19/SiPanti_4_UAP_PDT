@@ -143,7 +143,7 @@ COMMIT;
 
 ## 💾 Backup Database
 
-* File backup: `backup_sipanti.bat`
+* File backup: `backup_mysql.bat`
 * Berisi seluruh struktur dan data tabel `users`, `donations`, `penyaluran`, `log_donasi`
 * Termasuk: `procedure`, `function`, `trigger`, `transaction`, `foreign key`
 
