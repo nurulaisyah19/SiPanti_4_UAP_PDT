@@ -23,9 +23,9 @@
 
 | Tabel        | Deskripsi Fungsi                                                                      |
 | ------------ | ------------------------------------------------------------------------------------- |
-| `users`      | Menyimpan data pengguna, termasuk nama, email, password hash, dan role (`user/admin`) |
+| `users`      | Menyimpan data pengguna, termasuk nama, email, password hash, dan role user |
 | `donations`  | Menyimpan catatan donasi pengguna, termasuk nominal dan deskripsi                     |
-| `log_donasi` | Menyimpan log otomatis dari donasi, termasuk deteksi donasi besar                     |
+| `log_donasi` | Menyimpan log otomatis dari donasi yang ditambahkan                     |
 | `penyaluran` | Menyimpan catatan distribusi bantuan ke penerima manfaat                              |
 
 ---
